@@ -1,0 +1,4 @@
+name: json-mixin
+author: jrruethe@gmail.com
+summary: Grants a class a JSON interface
+version: 0.1.0

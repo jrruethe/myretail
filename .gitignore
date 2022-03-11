@@ -1,0 +1,2 @@
+src/**/Gemfile.lock
+src/**/pkg/*.gem
