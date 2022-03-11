@@ -1,2 +1,3 @@
+build
 src/**/Gemfile.lock
 src/**/pkg/*.gem

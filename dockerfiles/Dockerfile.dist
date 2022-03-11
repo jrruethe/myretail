@@ -1,0 +1,4 @@
+FROM jrruethe/base_image:latest
+WORkDIR /mnt
+COPY pkg/*.gem /mnt/
+RUN gem install /mnt/*.gem

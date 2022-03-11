@@ -1,42 +1,78 @@
 #!/usr/bin/env ruby
 
+require "pathname"
+
 AUTHOR = "jrruethe"
 BASE_IMAGE = "#{AUTHOR}/base_image:latest"
 
-# Build the image in the given directory and tag it with the given name
-def docker_build(image, directory)
-  "cd #{directory}; docker build . -q -t #{image}"
+# Get the path of the first directory relative to the second
+def relative_to(a, b)
+  a = Pathname.new(File.join(Dir.pwd, a))
+  b = Pathname.new(File.join(Dir.pwd, b))
+  r = a.relative_path_from(b)
+  return r
 end
 
-# Run the given command inside a container using the given image
 def docker_run(image, command)
-  "docker run -it --rm -v $(pwd):/mnt -w /mnt #{image} /bin/bash -c '#{command}'"
-end
-
-# Build the gem in the given directory
-def build_gem(directory)
-  "cd #{directory}; #{docker_run(BASE_IMAGE, "rake build")}"
-end
-
-# Run the tests for the code in the given directory
-def run_tests(image, directory)
-  "cd #{directory}; #{docker_run(image, "rake test")}"
+  return <<~EOF
+  docker run -it --rm \
+  -u $(id -u ${USER}):$(id -g ${USER}) \
+  -v $(pwd):/mnt -w /mnt \
+  #{image} \
+  #{command}
+  EOF
 end
 
 # Build the base image
 task :base_image do
-  sh docker_build(BASE_IMAGE, "base_image")
+  sh <<~EOF
+  cd dockerfiles
+  docker build . -q -f Dockerfile.base -t #{BASE_IMAGE}
+  EOF
 end
 
 # Build all the common gems
-task :common => :base_image do 
-  Dir.glob("src/common/*/") do |d|
-    sh build_gem(d)
+task :common => :base_image do
+
+  # Built gems will be stored in the build directory
+  sh <<~EOF
+  mkdir -p build
+  EOF
+
+  # Build all the common gems
+  Dir.glob("src/common/*/") do |directory|
+    sh <<~EOF
+    cd #{directory}
+
+    # Build the gem inside of a Docker container
+    #{docker_run(BASE_IMAGE, "rake build")}
+    EOF
   end
+
+  # Move the artifacts to the gem directory
+  sh <<~EOF
+  find src -type f -name '*.gem' -exec cp {} build \\;
+  EOF
 end
 
 task :product_name => :common do 
+  dockerfile = "./dockerfiles/Dockerfile.build"
+  directory = "./src/product_name"
+  image = "#{AUTHOR}/product_name:latest"
 
+  sh <<~EOF
+
+  # Copy the common gems to the pkg directory
+  mkdir -p #{directory}/pkg
+  cp build/*.gem #{directory}/pkg
+  cd #{directory}
+
+  # Build the gem inside of a Docker container
+  #{docker_run(BASE_IMAGE, "rake build")}
+
+  # Build the distribution image
+  docker build . -q -f #{relative_to(dockerfile, directory)} -t #{image}
+  EOF
 end
 
 task :product_price => :common do
@@ -48,11 +84,20 @@ task :api => :common do
 end
 
 task :test do
-  Dir.glob("src/**/Rakefile") do |f|
-    directory = File.dirname(f)
-    image = "#{AUTHOR}/#{File.basename(directory)}:latest"
-    sh docker_build(image, directory)
-    sh run_tests(image, directory)
+  # Run all tests inside of Docker
+  dockerfile = "./dockerfiles/Dockerfile.build"
+  Dir.glob("src/**/Rakefile") do |file|
+    directory = File.dirname(file)
+    image = "#{AUTHOR}/#{File.basename(directory)}_test:latest"
+    sh <<~EOF
+    cd #{directory}
+
+    # Build the Docker image for running the tests
+    docker build . -q -f #{relative_to(dockerfile, directory)} -t #{image}
+
+    # Run the tests inside of a Docker container
+    #{docker_run(image, "rake test")}
+    EOF
   end
 end
 
