@@ -63,6 +63,10 @@ class DummyClass
     7
   end
 
+  def _ignore
+    8
+  end 
+
 end
 
 class ComparableClass

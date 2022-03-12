@@ -42,6 +42,7 @@ module JsonMixin
     .select{|i| i.parameters.empty?}
     .reject{|i| i.name =~ /[!?]$/}
     .reject{|i| i.name.to_s.start_with?("to_")}
+    .reject{|i| i.name.to_s.start_with?("_")}
     .sort_by{|i| i.to_s}
     .map{|i| [i.name, i.call]}
     .to_h
