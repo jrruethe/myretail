@@ -6,6 +6,7 @@ require "fileutils"
 
 AUTHOR = "jrruethe"
 BASE_IMAGE = "#{AUTHOR}/base_image:latest"
+SINATRA_PORT = 4567
 
 # Main service components
 COMPONENTS =
@@ -26,10 +27,7 @@ DOCKERFILE =
   dist:  "./dockerfiles/Dockerfile.dist"
 }
 
-# Register the dockerfiles
-DOCKERFILE.values.each do |dockerfile|
-  file dockerfile
-end
+# Define the Dockerfile dependencies
 file DOCKERFILE[:build] => DOCKERFILE[:base]
 file DOCKERFILE[:dist]  => DOCKERFILE[:base]
 
@@ -69,6 +67,7 @@ def docker_run(image, command)
   docker run -it --rm \
   -u $(id -u ${USER}):$(id -g ${USER}) \
   -v $(pwd):/mnt -w /mnt \
+  -p #{SINATRA_PORT}:#{SINATRA_PORT} \
   #{image} \
   #{command}
   EOF
@@ -227,6 +226,9 @@ Dir.glob("src/**/Rakefile") do |file|
     TEST_IMAGE_ARTIFACT,
     BASE_IMAGE_FILENAME,
     DOCKERFILE[:build],
+    source_directory + "/Gemfile",
+    source_directory + "/Gemspec.yml",
+    source_directory + "/#{component}.gemspec",
   ] do
     sh <<~EOF
     cd #{source_directory}
@@ -237,6 +239,7 @@ Dir.glob("src/**/Rakefile") do |file|
   end
   task :build_test_images => image_filename
 
+  # Run unit tests
   task "test_#{component}".to_sym => image_filename do
     sh <<~EOF
     cd #{source_directory}
@@ -244,6 +247,14 @@ Dir.glob("src/**/Rakefile") do |file|
     EOF
   end
   task :test => "test_#{component}".to_sym
+
+  # Run application for local testing
+  task "run_#{component}".to_sym => image_filename do
+    sh <<~EOF
+    cd #{source_directory}
+    #{docker_run(image, "bundle exec bin/app.rb")}
+    EOF
+  end
 end
 ###############################################################################
 
@@ -272,11 +283,11 @@ task :clean => [:clean_gems, :clean_docker_images, :clean_tarballs]
 
 ###############################################################################
 # Deployment
-task :deploy do
+task :deploy => :build do
 
 end
 ###############################################################################
 
 # Defaults
 task :all => [:clean, :test, :build, :deploy]
-task :default => :all
+task :default => :deploy
