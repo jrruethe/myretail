@@ -22,14 +22,14 @@ COMPONENTS =
 # Locations of the Dockerfiles
 DOCKERFILE =
 {
-  base:  "./dockerfiles/Dockerfile.base",
-  build: "./dockerfiles/Dockerfile.build",
-  dist:  "./dockerfiles/Dockerfile.dist"
+  base: "./dockerfiles/Dockerfile.base",
+  test: "./dockerfiles/Dockerfile.test",
+  dist: "./dockerfiles/Dockerfile.dist",
 }
 
 # Define the Dockerfile dependencies
-file DOCKERFILE[:build] => DOCKERFILE[:base]
-file DOCKERFILE[:dist]  => DOCKERFILE[:base]
+file DOCKERFILE[:test] => DOCKERFILE[:base]
+file DOCKERFILE[:dist] => DOCKERFILE[:base]
 
 # Location of build artifacts
 ARTIFACT = "./build"
@@ -117,7 +117,7 @@ file BASE_IMAGE_FILENAME =>
 ] do
   sh <<~EOF
   cd dockerfiles
-  docker build . -q -f #{File.basename(DOCKERFILE[:base])} -t #{BASE_IMAGE}
+  docker build . -f #{File.basename(DOCKERFILE[:base])} -t #{BASE_IMAGE}
   cd -
   docker save #{BASE_IMAGE} > #{BASE_IMAGE_FILENAME}
   EOF
@@ -127,7 +127,7 @@ end
 ###############################################################################
 # For each gem in the common directory
 common_gems = []
-Dir.glob("src/common/*/") do |source_directory|
+Dir.glob("./src/common/*/") do |source_directory|
   
   # Determine the gem name
   component = File.basename(source_directory)
@@ -174,8 +174,16 @@ COMPONENTS.each do |component|
   end
   task :build_gems => final_gem_file
   
+  # Copy locally-built gems into the image
+  common_gems.each do |gem|
+    copy_to = "#{source_directory + INTERMEDIATE_ARTIFACT}/#{File.basename(gem)}"
+    file copy_to => gem do
+      FileUtils.cp(gem, copy_to)
+    end
+    file image_filename => copy_to
+  end
+
   # Build the distribution image
-  file image_filename => common_gems
   file image_filename => 
   [
     BASE_IMAGE_FILENAME,
@@ -183,15 +191,10 @@ COMPONENTS.each do |component|
     intermediate_gem_file,
   ] do
 
-    # Copy the common gems into the image
-    Dir.glob("#{COMMON_GEM_ARTIFACT}/*.gem") do |file|
-      FileUtils.cp(file, source_directory + INTERMEDIATE_ARTIFACT)
-    end
-
     # Build and save the distribution image
     sh <<~EOF
     cd #{source_directory}
-    docker build . -q -f #{relative_to(DOCKERFILE[:dist], source_directory)} -t #{image}
+    docker build . -f #{relative_to(DOCKERFILE[:dist], source_directory)} -t #{image}
     cd -
     docker save #{image} > #{image_filename}
     EOF
@@ -213,7 +216,7 @@ task :build => [:build_gems, :build_images]
 
 ###############################################################################
 # Build the test images
-Dir.glob("src/**/Rakefile") do |file|
+Dir.glob("./src/**/Rakefile") do |file|
   source_directory = File.dirname(file)
   component = File.basename(source_directory)
 
@@ -225,14 +228,14 @@ Dir.glob("src/**/Rakefile") do |file|
   [
     TEST_IMAGE_ARTIFACT,
     BASE_IMAGE_FILENAME,
-    DOCKERFILE[:build],
+    DOCKERFILE[:test],
     source_directory + "/Gemfile",
     source_directory + "/Gemspec.yml",
     source_directory + "/#{component}.gemspec",
   ] do
     sh <<~EOF
     cd #{source_directory}
-    docker build . -q -f #{relative_to(DOCKERFILE[:build], source_directory)} -t #{image}
+    docker build . -f #{relative_to(DOCKERFILE[:test], source_directory)} -t #{image}
     cd -
     docker save #{image} > #{image_filename}
     EOF
@@ -248,11 +251,22 @@ Dir.glob("src/**/Rakefile") do |file|
   end
   task :test => "test_#{component}".to_sym
 
+  # Copy locally-built gems into the image
+  common_gems.each do |gem|
+    # But don't create circular dependencies among the common gems
+    next if source_directory.start_with?("./src/common/")
+    copy_to = "#{source_directory}/#{INTERMEDIATE_ARTIFACT}/#{File.basename(gem)}"
+    file copy_to => gem do
+      FileUtils.cp(gem, copy_to)
+    end
+    file image_filename => copy_to
+  end
+
   # Run application for local testing
   task "run_#{component}".to_sym => image_filename do
     sh <<~EOF
     cd #{source_directory}
-    #{docker_run(image, "bundle exec bin/app.rb")}
+    #{docker_run(image, "bundle exec bin/app")}
     EOF
   end
 end
