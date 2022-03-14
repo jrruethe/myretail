@@ -1,3 +1,4 @@
+config/kubeconfig.yml
 build
 src/common/*/Gemfile.lock
 src/**/pkg/*.gem

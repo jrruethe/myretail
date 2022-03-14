@@ -1,4 +1,5 @@
-FROM jrruethe/base_image:latest
+FROM registry.localhost:5000/jrruethe/base_image:latest
 WORkDIR /mnt
 COPY pkg/*.gem /mnt/
 RUN gem install /mnt/*.gem
+CMD /usr/local/bin/app

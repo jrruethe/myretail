@@ -1,4 +1,4 @@
-FROM jrruethe/base_image:latest
+FROM registry.localhost:5000/jrruethe/base_image:latest
 ARG USERNAME
 ARG UID
 ARG GID

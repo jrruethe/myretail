@@ -5,8 +5,9 @@ require "yaml"
 require "fileutils"
 
 AUTHOR = "jrruethe"
-BASE_IMAGE = "#{AUTHOR}/base_image:latest"
-TEST_IMAGE = "#{AUTHOR}/test_image:latest"
+REGISTRY = "registry.localhost:5000"
+BASE_IMAGE = "#{REGISTRY}/#{AUTHOR}/base_image:latest"
+TEST_IMAGE = "#{REGISTRY}/#{AUTHOR}/test_image:latest"
 SINATRA_PORT = 4567
 
 # Main service components
@@ -53,7 +54,7 @@ VENDOR_BUNDLER        = "vendor/bundler"
 
 # Convert a Docker image name to a filename for saving
 def image_to_filename(image)
-  image.gsub(/[\/:]/, "_") + ".tar"
+  image.gsub(/[\.\/:]/, "_") + ".tar"
 end
 
 # Define the common docker image filenames and dependencies
@@ -188,7 +189,7 @@ task :build_gems => :build_common_gems
 COMPONENTS.each do |component|
 
   # Determine the image and filename
-  image = "#{AUTHOR}/#{component}:latest"
+  image = "#{REGISTRY}/#{AUTHOR}/#{component}:latest"
   image_filename = "#{IMAGE_ARTIFACT}/#{image_to_filename(image)}"
 
   # Determine the gem name
@@ -322,22 +323,32 @@ task :clean_tarballs do
   end
 end
 
-task :clean_docker_images => :clean_tarballs do
+task :clean_images => :clean_tarballs do
   sh <<~EOF
   docker images | grep '#{AUTHOR}/*' | awk '{print $1}' | xargs docker rmi 2>/dev/null || true
   EOF
 end
 
-task :clean => [:clean_build, :clean_vendor, :clean_gems, :clean_docker_images, :clean_tarballs]
+task :clean => [:clean_build, :clean_vendor, :clean_gems, :clean_images, :clean_tarballs]
 ###############################################################################
 
 ###############################################################################
 # Deployment
-task :deploy => :build do
+task :push => :build do
+
+  # Deploy the registry
+
+  # Push images to the registry
+
+end
+
+task :deploy => :push do
+
+  # Deploy the manifests
 
 end
 ###############################################################################
 
 # Defaults
-task :all => [:clean, :test, :build, :deploy]
+task :all => [:clean, :test, :build, :push, :deploy]
 task :default => :deploy
