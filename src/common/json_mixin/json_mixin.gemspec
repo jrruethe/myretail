@@ -9,10 +9,7 @@ Gem::Specification.new do |spec|
   end
 
   spec.require_paths = ["lib"]
-  spec.files = 
-  [
-    "Gemfile"
-  ] + Dir.glob("lib/**/*") + Dir.glob("*.gemspec")
+  spec.files = Dir.glob("lib/**/*")
 
   spec.add_development_dependency "rake"
   spec.add_development_dependency "minitest"

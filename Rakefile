@@ -6,6 +6,7 @@ require "fileutils"
 
 AUTHOR = "jrruethe"
 BASE_IMAGE = "#{AUTHOR}/base_image:latest"
+TEST_IMAGE = "#{AUTHOR}/test_image:latest"
 SINATRA_PORT = 4567
 
 # Main service components
@@ -32,25 +33,33 @@ file DOCKERFILE[:test] => DOCKERFILE[:base]
 file DOCKERFILE[:dist] => DOCKERFILE[:base]
 
 # Location of build artifacts
-ARTIFACT = "./build"
-IMAGE_ARTIFACT = "#{ARTIFACT}/image"
-TEST_IMAGE_ARTIFACT = "#{ARTIFACT}/image/test"
-GEM_ARTIFACT = "#{ARTIFACT}/gem"
-COMMON_GEM_ARTIFACT = "#{ARTIFACT}/gem/common"
-INTERMEDIATE_ARTIFACT = "pkg"
+ARTIFACT              = "./build"
+IMAGE_ARTIFACT        = "#{ARTIFACT}/image"
+GEM_ARTIFACT          = "#{ARTIFACT}/gem"
+COMMON_GEM_ARTIFACT   = "#{ARTIFACT}/gem/common"
 
 # Build the artifact directory structure
 directory ARTIFACT
-directory IMAGE_ARTIFACT => ARTIFACT
-directory TEST_IMAGE_ARTIFACT => IMAGE_ARTIFACT
+directory IMAGE_ARTIFACT      => ARTIFACT
+directory GEM_ARTIFACT        => ARTIFACT
 directory COMMON_GEM_ARTIFACT => GEM_ARTIFACT
-directory GEM_ARTIFACT => ARTIFACT
+
+# Location of important folders
+SOURCE                = "src"
+COMMON                = "src/common"
+INTERMEDIATE_ARTIFACT = "pkg"
+VENDOR_CACHE          = "vendor/cache"
+VENDOR_BUNDLER        = "vendor/bundler"
 
 # Convert a Docker image name to a filename for saving
 def image_to_filename(image)
   image.gsub(/[\/:]/, "_") + ".tar"
 end
+
+# Define the common docker image filenames and dependencies
 BASE_IMAGE_FILENAME = "#{IMAGE_ARTIFACT}/#{image_to_filename(BASE_IMAGE)}"
+TEST_IMAGE_FILENAME = "#{IMAGE_ARTIFACT}/#{image_to_filename(TEST_IMAGE)}"
+file TEST_IMAGE_FILENAME => BASE_IMAGE_FILENAME
 
 # Get the path of the first directory relative to the second
 def relative_to(a, b)
@@ -123,6 +132,27 @@ file BASE_IMAGE_FILENAME =>
 end
 task :build_base_image => BASE_IMAGE_FILENAME
 task :build_images => :build_base_image
+###############################################################################
+
+###############################################################################
+# Build the test image
+file TEST_IMAGE_FILENAME => 
+[
+  IMAGE_ARTIFACT,
+  DOCKERFILE[:test]
+] do
+  sh <<~EOF
+  cd dockerfiles
+  docker build . -f #{File.basename(DOCKERFILE[:test])} -t #{TEST_IMAGE} \
+  --build-arg USERNAME=${USER} \
+  --build-arg UID=$(id -u ${USER}) \
+  --build-arg GID=$(id -g ${USER})
+  cd -
+  docker save #{TEST_IMAGE} > #{TEST_IMAGE_FILENAME}
+  EOF
+end
+task :build_test_image => TEST_IMAGE_FILENAME
+task :build_images => :build_test_image
 ###############################################################################
 
 ###############################################################################
@@ -226,61 +256,41 @@ task :build => [:build_gems, :build_images]
 ###############################################################################
 
 ###############################################################################
-# Build the test images
+# Testing
 Dir.glob("./src/**/Rakefile") do |file|
+  # Don't test vendored gems
   next if file =~ /^\.\/src\/.+\/vendor\/.+$/
+
+  # Determine which component is being tested
   source_directory = File.dirname(file)
   component = File.basename(source_directory)
 
-  # Determine the image and filename
-  image = "#{AUTHOR}/#{component}_test:latest"
-  image_filename = "#{TEST_IMAGE_ARTIFACT}/#{image_to_filename(image)}"
-
-  file image_filename => 
-  [
-    TEST_IMAGE_ARTIFACT,
-    BASE_IMAGE_FILENAME,
-    DOCKERFILE[:test],
-  ] do
-    sh <<~EOF
-    cd #{source_directory}
-    docker build . -f #{relative_to(DOCKERFILE[:test], source_directory)} -t #{image} --build-arg USERNAME=${USER} --build-arg UID=$(id -u ${USER}) --build-arg GID=$(id -g ${USER})
-    cd -
-    docker save #{image} > #{image_filename}
-    EOF
-  end
-  task :build_test_images => image_filename
-
   # Run unit tests
-  task "test_#{component}".to_sym => image_filename do
+  task "test_#{component}".to_sym => TEST_IMAGE do
     sh <<~EOF
     cd #{source_directory}
-    #{docker_run(image, "bundle config path vendor/bundler && bundle install && bundle exec rake test")}
+    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install && bundle exec rake test")}
     EOF
   end
   task :test => "test_#{component}".to_sym
 
   # Copy locally-built gems into the image
   common_gems.each do |gem|
-    # But don't create circular dependencies among the common gems
-    next if source_directory.start_with?("./src/common/")
-    # copy_to = "#{source_directory}/#{INTERMEDIATE_ARTIFACT}/#{File.basename(gem)}"
-    # file copy_to => gem do
-    #   FileUtils.cp(gem, copy_to)
-    # end
-    directory "#{source_directory}/vendor/cache"
-    copy_to = "#{source_directory}/vendor/cache/#{File.basename(gem)}"
-    file copy_to => [gem, "#{source_directory}/vendor/cache"] do
+    # Don't create circular dependencies among the common gems
+    next if source_directory.start_with?("./#{COMMON}/")
+    directory "#{source_directory}/#{VENDOR_CACHE}"
+    copy_to = "#{source_directory}/#{VENDOR_CACHE}/#{File.basename(gem)}"
+    file copy_to => [gem, "#{source_directory}/#{VENDOR_CACHE}"] do
       FileUtils.cp(gem, copy_to)
     end
-    file image_filename => copy_to
+    task "run_#{component}".to_sym => copy_to
   end
 
   # Run application for local testing
-  task "run_#{component}".to_sym => image_filename do
+  task "run_#{component}".to_sym => TEST_IMAGE_FILENAME do
     sh <<~EOF
     cd #{source_directory}
-    #{docker_run(image, "bundle config path vendor/bundler && bundle install --no-cache && bundle exec bin/app")}
+    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install --no-cache && bundle exec bin/app")}
     EOF
   end
 end
@@ -288,15 +298,27 @@ end
 
 ###############################################################################
 # Clean up
+
+task :clean_build do
+  FileUtils.rm_rf(ARTIFACT)
+end
+
+task :clean_vendor do
+  Dir.glob("./#{SOURCE}/**/vendor/") do |d|
+    next if d.include?(VENDOR_BUNDLER)
+    FileUtils.rm_rf(d)
+  end
+end
+
 task :clean_gems do
   Dir.glob("./**/*.gem") do |f|
-    FileUtils.rm f
+    FileUtils.rm(f)
   end
 end
 
 task :clean_tarballs do
   Dir.glob("#{IMAGE_ARTIFACT}/**/*.tar") do |f|
-    FileUtils.rm f
+    FileUtils.rm(f)
   end
 end
 
@@ -306,7 +328,7 @@ task :clean_docker_images => :clean_tarballs do
   EOF
 end
 
-task :clean => [:clean_gems, :clean_docker_images, :clean_tarballs]
+task :clean => [:clean_build, :clean_vendor, :clean_gems, :clean_docker_images, :clean_tarballs]
 ###############################################################################
 
 ###############################################################################
