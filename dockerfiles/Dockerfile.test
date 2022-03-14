@@ -1,0 +1,9 @@
+FROM jrruethe/base_image:latest
+ARG USERNAME
+ARG UID
+ARG GID
+RUN addgroup --gid $GID $USERNAME
+RUN adduser --uid $UID --gid $GID --disabled-password --gecos '' $USERNAME
+# RUN adduser $USERNAME sudo
+# RUN echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+WORKDIR /mnt

@@ -69,7 +69,7 @@ def docker_run(image, command)
   -v $(pwd):/mnt -w /mnt \
   -p #{SINATRA_PORT}:#{SINATRA_PORT} \
   #{image} \
-  #{command}
+  /bin/sh -c '#{command}'
   EOF
 end
 
@@ -89,6 +89,7 @@ def build_intermediate_gem_file(source_directory, gem_name)
   # Specify dependencies
   file intermediate_gem_file => BASE_IMAGE_FILENAME
   file intermediate_gem_file => FileList[source_directory + "**/*.rb"]
+  file intermediate_gem_file => source_directory + "bin/app" unless source_directory.start_with?("./src/common/")
   file intermediate_gem_file =>
   [
     "Gemfile",
@@ -108,8 +109,6 @@ end
 
 ###############################################################################
 # Build the base image
-task :build_base_image => BASE_IMAGE_FILENAME
-task :build_images => :build_base_image
 file BASE_IMAGE_FILENAME => 
 [
   IMAGE_ARTIFACT,
@@ -122,6 +121,8 @@ file BASE_IMAGE_FILENAME =>
   docker save #{BASE_IMAGE} > #{BASE_IMAGE_FILENAME}
   EOF
 end
+task :build_base_image => BASE_IMAGE_FILENAME
+task :build_images => :build_base_image
 ###############################################################################
 
 ###############################################################################
@@ -135,14 +136,16 @@ Dir.glob("./src/common/*/") do |source_directory|
   gem_name = "#{component}-#{version}.gem"
   intermediate_gem_file = source_directory + "#{INTERMEDIATE_ARTIFACT}/#{gem_name}"
   final_gem_file = "#{COMMON_GEM_ARTIFACT}/#{gem_name}"
+
+  # Store a list of common gems for later
   common_gems << final_gem_file
   
   # Create the task dependencies
-  task :build_common_gems => "build_#{component}".to_sym
-  task "build_#{component}".to_sym => final_gem_file
   file final_gem_file => [COMMON_GEM_ARTIFACT, intermediate_gem_file] do
     FileUtils.cp(intermediate_gem_file, final_gem_file)
   end
+  task "build_#{component}".to_sym => final_gem_file
+  task :build_common_gems => "build_#{component}".to_sym
 
   # Build the gem file
   build_intermediate_gem_file(source_directory, gem_name)
@@ -209,6 +212,14 @@ COMPONENTS.each do |component|
     "build_#{component}_image",
   ]
   task :build_images => "build_#{component}_image".to_sym
+
+  # Run distribution image
+  task "run_release_#{component}".to_sym => image_filename do
+    sh <<~EOF
+    cd #{source_directory}
+    #{docker_run(image, "/usr/local/bin/app")}
+    EOF
+  end
 end
 
 task :build => [:build_gems, :build_images]
@@ -217,6 +228,7 @@ task :build => [:build_gems, :build_images]
 ###############################################################################
 # Build the test images
 Dir.glob("./src/**/Rakefile") do |file|
+  next if file =~ /^\.\/src\/.+\/vendor\/.+$/
   source_directory = File.dirname(file)
   component = File.basename(source_directory)
 
@@ -229,13 +241,10 @@ Dir.glob("./src/**/Rakefile") do |file|
     TEST_IMAGE_ARTIFACT,
     BASE_IMAGE_FILENAME,
     DOCKERFILE[:test],
-    source_directory + "/Gemfile",
-    source_directory + "/Gemspec.yml",
-    source_directory + "/#{component}.gemspec",
   ] do
     sh <<~EOF
     cd #{source_directory}
-    docker build . -f #{relative_to(DOCKERFILE[:test], source_directory)} -t #{image}
+    docker build . -f #{relative_to(DOCKERFILE[:test], source_directory)} -t #{image} --build-arg USERNAME=${USER} --build-arg UID=$(id -u ${USER}) --build-arg GID=$(id -g ${USER})
     cd -
     docker save #{image} > #{image_filename}
     EOF
@@ -246,7 +255,7 @@ Dir.glob("./src/**/Rakefile") do |file|
   task "test_#{component}".to_sym => image_filename do
     sh <<~EOF
     cd #{source_directory}
-    #{docker_run(image, "rake test")}
+    #{docker_run(image, "bundle config path vendor/bundler && bundle install && bundle exec rake test")}
     EOF
   end
   task :test => "test_#{component}".to_sym
@@ -255,8 +264,13 @@ Dir.glob("./src/**/Rakefile") do |file|
   common_gems.each do |gem|
     # But don't create circular dependencies among the common gems
     next if source_directory.start_with?("./src/common/")
-    copy_to = "#{source_directory}/#{INTERMEDIATE_ARTIFACT}/#{File.basename(gem)}"
-    file copy_to => gem do
+    # copy_to = "#{source_directory}/#{INTERMEDIATE_ARTIFACT}/#{File.basename(gem)}"
+    # file copy_to => gem do
+    #   FileUtils.cp(gem, copy_to)
+    # end
+    directory "#{source_directory}/vendor/cache"
+    copy_to = "#{source_directory}/vendor/cache/#{File.basename(gem)}"
+    file copy_to => [gem, "#{source_directory}/vendor/cache"] do
       FileUtils.cp(gem, copy_to)
     end
     file image_filename => copy_to
@@ -266,7 +280,7 @@ Dir.glob("./src/**/Rakefile") do |file|
   task "run_#{component}".to_sym => image_filename do
     sh <<~EOF
     cd #{source_directory}
-    #{docker_run(image, "bundle exec bin/app")}
+    #{docker_run(image, "bundle config path vendor/bundler && bundle install --no-cache && bundle exec bin/app")}
     EOF
   end
 end

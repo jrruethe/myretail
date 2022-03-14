@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require "sinatra"
+require "mongo"
+
+require "product_name"
+
+# Sinatra configuration
+set :bind, "0.0.0.0"
+enable :run
+
+# Create the MonogoDB client
+
+get "/" do
+  ProductName.new(0, "Test").to_json
+end

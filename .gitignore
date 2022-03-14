@@ -1,3 +1,5 @@
 build
-src/**/Gemfile.lock
+src/common/*/Gemfile.lock
 src/**/pkg/*.gem
+src/*/vendor
+src/common/*/vendor
