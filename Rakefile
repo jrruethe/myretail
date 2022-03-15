@@ -3,6 +3,7 @@
 require "pathname"
 require "yaml"
 require "fileutils"
+require "socket"
 
 AUTHOR = "jrruethe"
 REGISTRY = "registry.localhost:5000"
@@ -334,17 +335,51 @@ task :clean => [:clean_build, :clean_vendor, :clean_gems, :clean_images, :clean_
 
 ###############################################################################
 # Deployment
+
+def deploy(file)
+  `./bin/k3s kubectl apply -f #{file}`
+end
+
+def wait_for(host, port)
+  loop do
+    begin
+      TCPSocket.new(host, port.to_i)
+      return true
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH
+      sleep 3
+    end
+  end
+end
+
 task :push => :build do
 
   # Deploy the registry
+  [
+    "./deploy/kubernetes_manifests/registry/deployment.yml",
+    "./deploy/kubernetes_manifests/registry/service.yml",
+  ]
+  .each{|i| deploy(i)}
+
+  # Wait for the registry to come up
+  wait_for(*REGISTRY.split(":"))
 
   # Push images to the registry
-
+  `docker images | grep #{REGISTRY}/#{AUTHOR} | awk '{print $1}'`.split.each do |image|
+    `docker push #{image}`
+  end
 end
 
 task :deploy => :push do
 
   # Deploy the manifests
+  [
+    "./deploy/kubernetes_manifests/product_name/api/deployment.yml",
+    "./deploy/kubernetes_manifests/product_name/api/service.yml",
+    "./deploy/kubernetes_manifests/product_name/api/ingress.yml",
+    "./deploy/kubernetes_manifests/product_name/mongodb/deployment.yml",
+    "./deploy/kubernetes_manifests/product_name/mongodb/service.yml",
+  ]
+  .each{|i| deploy(i)}
 
 end
 ###############################################################################

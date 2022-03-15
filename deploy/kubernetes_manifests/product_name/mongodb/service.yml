@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-name-database
+  labels:
+    target: product-name
+    component: mongodb
+spec:
+  selector:
+    target: product-name
+    component: mongodb
+  ports:
+  - name: mongo
+    port: 27017
+    protocol: TCP

@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-name-database
+  labels:
+    target: product-name
+    component: mongodb
+spec:
+  selector:
+    matchLabels:
+      target: product-name
+      component: mongodb
+  template:
+    metadata:
+      name: product-name-database
+      labels:
+        target: product-name
+        component: mongodb
+    spec:
+      containers:
+      - name: product-name-database
+        image: "mongo:5.0.6"
+        ports:
+        - name: mongo
+          containerPort: 27017
+          protocol: TCP

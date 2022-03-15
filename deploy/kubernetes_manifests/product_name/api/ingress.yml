@@ -2,18 +2,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: helloworld
+  name: product-name-api
   labels:
-    target: dummy
+    target: product-name
     component: api
 spec:
   rules:
-  - host: helloworld.localhost
+  - host: product-name.localhost
     http:
       paths:
       - backend:
           service:
-            name: helloworld
+            name: product-name-api
             port: 
               name: http
         path: /

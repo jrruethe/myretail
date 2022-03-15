@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-name-api
+  labels:
+    target: product-name
+    component: api
+spec:
+  selector:
+    matchLabels:
+      target: product-name
+      component: api
+  template:
+    metadata:
+      name: product-name-api
+      labels:
+        target: product-name
+        component: api
+    spec:
+      containers:
+      - name: product-name-api
+        image: "registry.localhost:5000/jrruethe/product_name:latest"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 4567
+          protocol: TCP

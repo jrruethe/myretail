@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  labels:
+    target: registry
+    component: registry
+spec:
+  selector:
+    matchLabels:
+      target: registry
+      component: registry
+  template:
+    metadata:
+      name: registry
+      labels:
+        target: registry
+        component: registry
+    spec:
+      containers:
+      - name: registry
+        image: "registry:2.7.1"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP

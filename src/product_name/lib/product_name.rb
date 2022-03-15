@@ -14,3 +14,7 @@ class ProductName
   attr_accessor :name
 
 end
+
+get "/" do
+  ProductName.new(0, "Test").to_json
+end
