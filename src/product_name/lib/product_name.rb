@@ -1,20 +1,10 @@
 #!/usr/bin/env ruby
 
-require "json_mixin"
+require "sinatra"
+require "mongo"
 
-class ProductName
-  include JsonMixin
-
-  def initialize(id, name)
-    @id = id
-    @name = name
-  end
-
-  attr_reader   :id
-  attr_accessor :name
-
-end
+require "product_name/product"
 
 get "/" do
-  ProductName.new(0, "Test").to_json
+  Product.new(0, "Test").to_json
 end

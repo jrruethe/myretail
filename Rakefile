@@ -268,7 +268,7 @@ Dir.glob("./src/**/Rakefile") do |file|
   component = File.basename(source_directory)
 
   # Run unit tests
-  task "test_#{component}".to_sym => TEST_IMAGE do
+  task "test_#{component}".to_sym => TEST_IMAGE_FILENAME do
     sh <<~EOF
     cd #{source_directory}
     #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install && bundle exec rake test")}
