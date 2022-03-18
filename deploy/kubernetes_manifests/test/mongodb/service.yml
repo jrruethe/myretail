@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-database
+  labels:
+    target: test
+    component: mongodb
+spec:
+  selector:
+    target: test
+    component: mongodb
+  type: LoadBalancer
+  ports:
+  - name: mongo
+    port: 27017
+    protocol: TCP

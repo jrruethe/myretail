@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-database
+  labels:
+    target: test
+    component: mongodb
+spec:
+  selector:
+    matchLabels:
+      target: test
+      component: mongodb
+  template:
+    metadata:
+      name: test-database
+      labels:
+        target: test
+        component: mongodb
+    spec:
+      containers:
+      - name: test-database
+        image: "mongo:5.0.6"
+        ports:
+        - name: mongo
+          containerPort: 27017
+          protocol: TCP

@@ -78,6 +78,7 @@ def docker_run(image, command)
   docker run -it --rm \
   -u $(id -u ${USER}):$(id -g ${USER}) \
   -v $(pwd):/mnt -w /mnt \
+  --add-host=host.docker.internal:host-gateway \
   -p #{SINATRA_PORT}:#{SINATRA_PORT} \
   #{image} \
   /bin/sh -c '#{command}'
@@ -271,7 +272,7 @@ Dir.glob("./src/**/Rakefile") do |file|
   task "test_#{component}".to_sym => TEST_IMAGE_FILENAME do
     sh <<~EOF
     cd #{source_directory}
-    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install && bundle exec rake test")}
+    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install --no-cache >/dev/null && bundle exec rake test")}
     EOF
   end
   task :test => "test_#{component}".to_sym
@@ -292,7 +293,7 @@ Dir.glob("./src/**/Rakefile") do |file|
   task "run_#{component}".to_sym => TEST_IMAGE_FILENAME do
     sh <<~EOF
     cd #{source_directory}
-    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install --no-cache && bundle exec bin/app")}
+    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install --no-cache >/dev/null && bundle exec bin/app")}
     EOF
   end
 end
