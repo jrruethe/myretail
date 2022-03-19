@@ -2,7 +2,7 @@
 
 require_relative "helper"
 
-require "product_name/database"
+require "database"
 
 # A mock to define the behavior of the database
 class MockDatabase < MyRetail::Database

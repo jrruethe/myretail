@@ -1,0 +1,4 @@
+name: database
+author: jrruethe@gmail.com
+summary: MongoDB wrapper with mock for testing
+version: 0.1.0

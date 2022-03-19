@@ -268,15 +268,6 @@ Dir.glob("./src/**/Rakefile") do |file|
   source_directory = File.dirname(file)
   component = File.basename(source_directory)
 
-  # Run unit tests
-  task "test_#{component}".to_sym => TEST_IMAGE_FILENAME do
-    sh <<~EOF
-    cd #{source_directory}
-    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install --no-cache >/dev/null && bundle exec rake test")}
-    EOF
-  end
-  task :test => "test_#{component}".to_sym
-
   # Copy locally-built gems into the image
   common_gems.each do |gem|
     # Don't create circular dependencies among the common gems
@@ -286,8 +277,18 @@ Dir.glob("./src/**/Rakefile") do |file|
     file copy_to => [gem, "#{source_directory}/#{VENDOR_CACHE}"] do
       FileUtils.cp(gem, copy_to)
     end
+    task "test_#{component}".to_sym => copy_to
     task "run_#{component}".to_sym => copy_to
   end
+
+  # Run unit tests
+  task "test_#{component}".to_sym => TEST_IMAGE_FILENAME do
+    sh <<~EOF
+    cd #{source_directory}
+    #{docker_run(TEST_IMAGE, "bundle config path vendor/bundler && bundle install --no-cache >/dev/null && bundle exec rake test")}
+    EOF
+  end
+  task :test => "test_#{component}".to_sym
 
   # Run application for local testing
   task "run_#{component}".to_sym => TEST_IMAGE_FILENAME do

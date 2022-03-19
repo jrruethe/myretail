@@ -2,7 +2,7 @@
 
 require "mongo"
 
-require "transform"
+require "database/transform"
 
 # A simple wrapper around the MongoDB client
 # that can be mocked out for unit tests
