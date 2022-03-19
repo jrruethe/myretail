@@ -2,7 +2,7 @@
 
 require "sinatra"
 
-require "product_name/database"
+require "database"
 require "product_name/product"
 
 # Create a database and give it to Sinatra

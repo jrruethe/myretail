@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     product_name (0.1.0)
+      database (= 0.1.0)
       json_mixin (= 0.1.0)
       mongo
       sinatra
@@ -13,6 +14,8 @@ GEM
     bson (4.14.1)
     builder (3.2.4)
     coderay (1.1.3)
+    database (0.1.0)
+      mongo
     json_mixin (0.1.0)
     method_source (1.0.0)
     minitest (5.15.0)
