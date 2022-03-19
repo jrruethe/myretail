@@ -1,16 +1,12 @@
 #!/usr/bin/env ruby
 
 require "sinatra"
+require "json"
 
-require "database"
 require "product_name/product"
 
-# Create a database and give it to Sinatra
-begin
-  database = MyRetail::Database.new(host: "product-name-database.localhost", name: "product_name")
-  set :database, database
-rescue Mongo::Error::SocketError
-  set :database, nil
+before do
+  content_type "application/json"
 end
 
 # Health Check
@@ -21,25 +17,32 @@ end
 
 # Return a list of products
 get "/products" do
-  content_type "application/json"
-end
-
-# Retrieve a specific product
-get "/products/:id" do
-  content_type "application/json"
-end
-
-# Update an existing product
-put "/products/:id" do
-  content_type "application/json"
+  MyRetail::Product.list.to_json
 end
 
 # Create a new product
 post "/products" do
-  content_type "application/json"
+  data = JSON.parse(request.body.read, symbolize_names: true)
+  MyRetail::Product.create(**data).to_json
+end
+
+# Retrieve a specific product
+get "/products/:id" do |id|
+  id = id.to_i
+  product = MyRetail::Product.read(id)
+  return 404 unless product
+  return product.to_json
+end
+
+# Update an existing product
+put "/products/:id" do |id|
+  id = id.to_i
+  data = JSON.parse(request.body.read, symbolize_names: true).merge({id: id})
+  MyRetail::Product.update(**data).to_json
 end
 
 # Delete a product
-delete "/products/:id" do
-  content_type "application/json"
+delete "/products/:id" do |id|
+  id = id.to_i
+  MyRetail::Product.delete(id).to_json
 end

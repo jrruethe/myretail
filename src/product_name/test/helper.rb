@@ -9,3 +9,7 @@ require "rack/test"
 
 # Specify a pretty-reporter
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+
+# Set test database environment variables
+ENV["DBHOST"] = "host.docker.internal"
+ENV["DBNAME"] = "test"
