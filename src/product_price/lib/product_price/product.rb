@@ -9,13 +9,15 @@ module MyRetail
   class Product
     include JsonMixin
 
-    def initialize(id: nil, name: nil, **kwargs)
+    def initialize(id: nil, price: nil, currency: nil, **kwargs)
       @id = id
-      @name = name
+      @price = price
+      @currency = currency
     end
 
     attr_reader   :id
-    attr_accessor :name
+    attr_accessor :price
+    attr_accessor :currency
     sort_on :id
 
     ###########################################################################
@@ -32,7 +34,7 @@ module MyRetail
     end
 
     # Specify the collection name
-    COLLECTION = :product_name
+    COLLECTION = :product_price
 
     # CRUD functions for the product
 
@@ -48,15 +50,16 @@ module MyRetail
       @@database.query(COLLECTION, {id: id}).map{|i| Product.new(**i)}.first
     end
 
-    def self.create(id: nil, name: nil, **kwargs)
-      product = Product.new(id: id, name: name)
+    def self.create(id: nil, price: nil, currency: nil, **kwargs)
+      product = Product.new(id: id, price: price, currency: currency)
       @@database.insert(COLLECTION, product.to_h)
       return product
     end
 
-    def self.update(id: nil, name: nil, **kwargs)
+    def self.update(id: nil, price: nil, currency: nil, **kwargs)
       product = read(id)
-      product.name = name if name
+      product.price = price if price
+      product.currency if currency
       @@database.update(COLLECTION, {id: id}, product.to_h)
       return product
     end

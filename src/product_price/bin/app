@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require "product_name"
+
+# Sinatra configuration
+set :bind, "0.0.0.0"
+enable :run
