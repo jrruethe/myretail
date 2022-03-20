@@ -1,0 +1,384 @@
+# This file is the result of running "rake all" from a clean project
+
+Sending build context to Docker daemon  4.096kB
+
+Step 1/2 : FROM debian:stable-slim
+ ---> 19f1f0abf5cb
+Step 2/2 : RUN apt update && apt install -y --no-install-recommends curl jq ruby ruby-bundler ruby-dev build-essential sudo && apt clean
+ ---> Using cache
+ ---> 8a4fcbb79fe7
+Successfully built 8a4fcbb79fe7
+Successfully tagged registry.localhost:5000/jrruethe/base_image:latest
+/home/user/Downloads/interview/case_study
+[32mjson_mixin 0.1.0 built to pkg/json_mixin-0.1.0.gem.[0m
+[32mdatabase 0.1.0 built to pkg/database-0.1.0.gem.[0m
+[32mmyretail 0.1.0 built to pkg/myretail-0.1.0.gem.[0m
+[32mproduct_name 0.1.0 built to pkg/product_name-0.1.0.gem.[0m
+[32mproduct_price 0.1.0 built to pkg/product_price-0.1.0.gem.[0m
+Sending build context to Docker daemon  4.096kB
+
+Step 1/7 : FROM registry.localhost:5000/jrruethe/base_image:latest
+ ---> 8a4fcbb79fe7
+Step 2/7 : ARG USERNAME
+ ---> Running in 8107e1ed3ed1
+Removing intermediate container 8107e1ed3ed1
+ ---> 5b64762b8dc5
+Step 3/7 : ARG UID
+ ---> Running in 1e4a90a1bdd8
+Removing intermediate container 1e4a90a1bdd8
+ ---> 8c131bf59f82
+Step 4/7 : ARG GID
+ ---> Running in 3f02a01f51e4
+Removing intermediate container 3f02a01f51e4
+ ---> 005f43a26c04
+Step 5/7 : RUN addgroup --gid $GID $USERNAME
+ ---> Running in 285e4ab0d5cb
+Adding group `user' (GID 1000) ...
+Done.
+Removing intermediate container 285e4ab0d5cb
+ ---> 6547faedcda1
+Step 6/7 : RUN adduser --uid $UID --gid $GID --disabled-password --gecos '' $USERNAME
+ ---> Running in ecd726ed9923
+Adding user `user' ...
+Adding new user `user' (1000) with group `user' ...
+Creating home directory `/home/user' ...
+Copying files from `/etc/skel' ...
+Removing intermediate container ecd726ed9923
+ ---> 382f834f448d
+Step 7/7 : WORKDIR /mnt
+ ---> Running in 7c19c188d544
+Removing intermediate container 7c19c188d544
+ ---> 79deb96d83b1
+Successfully built 79deb96d83b1
+Successfully tagged registry.localhost:5000/jrruethe/test_image:latest
+/home/user/Downloads/interview/case_study
+Sending build context to Docker daemon  47.15kB
+
+Step 1/5 : FROM registry.localhost:5000/jrruethe/base_image:latest
+ ---> 8a4fcbb79fe7
+Step 2/5 : WORkDIR /mnt
+ ---> Using cache
+ ---> c99ffa7ca226
+Step 3/5 : COPY pkg/*.gem /mnt/
+ ---> f7f4a9c242b9
+Step 4/5 : RUN gem install /mnt/*.gem
+ ---> Running in f99c35044cfd
+Building native extensions. This could take a while...
+Successfully installed bson-4.14.1
+Successfully installed mongo-2.17.0
+Successfully installed database-0.1.0
+Parsing documentation for bson-4.14.1
+Installing ri documentation for bson-4.14.1
+Parsing documentation for mongo-2.17.0
+Installing ri documentation for mongo-2.17.0
+Parsing documentation for database-0.1.0
+Installing ri documentation for database-0.1.0
+Done installing documentation for bson, mongo, database after 7 seconds
+Successfully installed json_mixin-0.1.0
+Parsing documentation for json_mixin-0.1.0
+Installing ri documentation for json_mixin-0.1.0
+Done installing documentation for json_mixin after 0 seconds
+Successfully installed netrc-0.11.0
+Successfully installed mime-types-data-3.2022.0105
+Successfully installed mime-types-3.4.1
+Building native extensions. This could take a while...
+[91munknown encoding name "header" for lib/http/accept.rb, skipping
+[0mSuccessfully installed unf_ext-0.0.8.1
+Successfully installed unf-0.1.4
+Successfully installed domain_name-0.5.20190701
+Successfully installed http-cookie-1.0.4
+Successfully installed http-accept-1.7.0
+Successfully installed rest-client-2.1.0
+Successfully installed ruby2_keywords-0.0.5
+Successfully installed mustermann-1.1.1
+Successfully installed rack-2.2.3
+Successfully installed rack-protection-2.2.0
+Successfully installed tilt-2.0.10
+Successfully installed sinatra-2.2.0
+Successfully installed myretail-0.1.0
+Parsing documentation for netrc-0.11.0
+Installing ri documentation for netrc-0.11.0
+Parsing documentation for mime-types-data-3.2022.0105
+Installing ri documentation for mime-types-data-3.2022.0105
+Parsing documentation for mime-types-3.4.1
+Installing ri documentation for mime-types-3.4.1
+Parsing documentation for unf_ext-0.0.8.1
+Installing ri documentation for unf_ext-0.0.8.1
+Parsing documentation for unf-0.1.4
+Installing ri documentation for unf-0.1.4
+Parsing documentation for domain_name-0.5.20190701
+Installing ri documentation for domain_name-0.5.20190701
+Parsing documentation for http-cookie-1.0.4
+Installing ri documentation for http-cookie-1.0.4
+Parsing documentation for http-accept-1.7.0
+Installing ri documentation for http-accept-1.7.0
+Parsing documentation for rest-client-2.1.0
+Installing ri documentation for rest-client-2.1.0
+Parsing documentation for ruby2_keywords-0.0.5
+Installing ri documentation for ruby2_keywords-0.0.5
+Parsing documentation for mustermann-1.1.1
+Installing ri documentation for mustermann-1.1.1
+Parsing documentation for rack-2.2.3
+Installing ri documentation for rack-2.2.3
+Parsing documentation for rack-protection-2.2.0
+Installing ri documentation for rack-protection-2.2.0
+Parsing documentation for tilt-2.0.10
+Installing ri documentation for tilt-2.0.10
+Parsing documentation for sinatra-2.2.0
+Installing ri documentation for sinatra-2.2.0
+Parsing documentation for myretail-0.1.0
+Installing ri documentation for myretail-0.1.0
+Done installing documentation for netrc, mime-types-data, mime-types, unf_ext, unf, domain_name, http-cookie, http-accept, rest-client, ruby2_keywords, mustermann, rack, rack-protection, tilt, sinatra, myretail after 36 seconds
+20 gems installed
+Removing intermediate container f99c35044cfd
+ ---> a108a8a6297b
+Step 5/5 : CMD /usr/local/bin/app
+ ---> Running in 9de3f65878c1
+Removing intermediate container 9de3f65878c1
+ ---> 7dc263690db7
+Successfully built 7dc263690db7
+Successfully tagged registry.localhost:5000/jrruethe/myretail:latest
+/home/user/Downloads/interview/case_study
+Sending build context to Docker daemon  44.08kB
+
+Step 1/5 : FROM registry.localhost:5000/jrruethe/base_image:latest
+ ---> 8a4fcbb79fe7
+Step 2/5 : WORkDIR /mnt
+ ---> Using cache
+ ---> c99ffa7ca226
+Step 3/5 : COPY pkg/*.gem /mnt/
+ ---> 7c1961e6a95b
+Step 4/5 : RUN gem install /mnt/*.gem
+ ---> Running in f5156d81b4b8
+Building native extensions. This could take a while...
+Successfully installed bson-4.14.1
+Successfully installed mongo-2.17.0
+Successfully installed database-0.1.0
+Parsing documentation for bson-4.14.1
+Installing ri documentation for bson-4.14.1
+Parsing documentation for mongo-2.17.0
+Installing ri documentation for mongo-2.17.0
+Parsing documentation for database-0.1.0
+Installing ri documentation for database-0.1.0
+Done installing documentation for bson, mongo, database after 7 seconds
+Successfully installed json_mixin-0.1.0
+Parsing documentation for json_mixin-0.1.0
+Installing ri documentation for json_mixin-0.1.0
+Done installing documentation for json_mixin after 0 seconds
+Successfully installed ruby2_keywords-0.0.5
+Successfully installed mustermann-1.1.1
+Successfully installed rack-2.2.3
+Successfully installed rack-protection-2.2.0
+Successfully installed tilt-2.0.10
+Successfully installed sinatra-2.2.0
+Successfully installed product_name-0.1.0
+Parsing documentation for ruby2_keywords-0.0.5
+Installing ri documentation for ruby2_keywords-0.0.5
+Parsing documentation for mustermann-1.1.1
+Installing ri documentation for mustermann-1.1.1
+Parsing documentation for rack-2.2.3
+Installing ri documentation for rack-2.2.3
+Parsing documentation for rack-protection-2.2.0
+Installing ri documentation for rack-protection-2.2.0
+Parsing documentation for tilt-2.0.10
+Installing ri documentation for tilt-2.0.10
+Parsing documentation for sinatra-2.2.0
+Installing ri documentation for sinatra-2.2.0
+Parsing documentation for product_name-0.1.0
+Installing ri documentation for product_name-0.1.0
+Done installing documentation for ruby2_keywords, mustermann, rack, rack-protection, tilt, sinatra, product_name after 26 seconds
+11 gems installed
+Removing intermediate container f5156d81b4b8
+ ---> b9c42d5062a4
+Step 5/5 : CMD /usr/local/bin/app
+ ---> Running in 946a86d9aff7
+Removing intermediate container 946a86d9aff7
+ ---> 2493f44eeb18
+Successfully built 2493f44eeb18
+Successfully tagged registry.localhost:5000/jrruethe/product_name:latest
+/home/user/Downloads/interview/case_study
+Sending build context to Docker daemon  44.59kB
+
+Step 1/5 : FROM registry.localhost:5000/jrruethe/base_image:latest
+ ---> 8a4fcbb79fe7
+Step 2/5 : WORkDIR /mnt
+ ---> Using cache
+ ---> c99ffa7ca226
+Step 3/5 : COPY pkg/*.gem /mnt/
+ ---> 39ce76e6f0bc
+Step 4/5 : RUN gem install /mnt/*.gem
+ ---> Running in abc1f4ecce28
+Building native extensions. This could take a while...
+Successfully installed bson-4.14.1
+Successfully installed mongo-2.17.0
+Successfully installed database-0.1.0
+Parsing documentation for bson-4.14.1
+Installing ri documentation for bson-4.14.1
+Parsing documentation for mongo-2.17.0
+Installing ri documentation for mongo-2.17.0
+Parsing documentation for database-0.1.0
+Installing ri documentation for database-0.1.0
+Done installing documentation for bson, mongo, database after 7 seconds
+Successfully installed json_mixin-0.1.0
+Parsing documentation for json_mixin-0.1.0
+Installing ri documentation for json_mixin-0.1.0
+Done installing documentation for json_mixin after 0 seconds
+Successfully installed ruby2_keywords-0.0.5
+Successfully installed mustermann-1.1.1
+Successfully installed rack-2.2.3
+Successfully installed rack-protection-2.2.0
+Successfully installed tilt-2.0.10
+Successfully installed sinatra-2.2.0
+Successfully installed product_price-0.1.0
+Parsing documentation for ruby2_keywords-0.0.5
+Installing ri documentation for ruby2_keywords-0.0.5
+Parsing documentation for mustermann-1.1.1
+Installing ri documentation for mustermann-1.1.1
+Parsing documentation for rack-2.2.3
+Installing ri documentation for rack-2.2.3
+Parsing documentation for rack-protection-2.2.0
+Installing ri documentation for rack-protection-2.2.0
+Parsing documentation for tilt-2.0.10
+Installing ri documentation for tilt-2.0.10
+Parsing documentation for sinatra-2.2.0
+Installing ri documentation for sinatra-2.2.0
+Parsing documentation for product_price-0.1.0
+Installing ri documentation for product_price-0.1.0
+Done installing documentation for ruby2_keywords, mustermann, rack, rack-protection, tilt, sinatra, product_price after 26 seconds
+11 gems installed
+Removing intermediate container abc1f4ecce28
+ ---> 26d29557354d
+Step 5/5 : CMD /usr/local/bin/app
+ ---> Running in 8fc194d0cc43
+Removing intermediate container 8fc194d0cc43
+ ---> b2a92d827445
+Successfully built b2a92d827445
+Successfully tagged registry.localhost:5000/jrruethe/product_price:latest
+/home/user/Downloads/interview/case_study
+USING REAL DATABASE: host.docker.internal
+Started with run options --seed 2539
+
+TestProductClass
+  test:product class should list.                                [32m PASS[0m (0.05s)
+  test:product class should read.                                [32m PASS[0m (0.06s)
+  test:product class should update.                              [32m PASS[0m (0.05s)
+  test:product class should create.                              [32m PASS[0m (0.04s)
+  test:product class should reset.                               [32m PASS[0m (0.05s)
+  test:product class should delete.                              [32m PASS[0m (0.06s)
+
+TestProductName
+  test:product_name should create products.                      [32m PASS[0m (0.07s)
+  test:product_name should list products.                        [32m PASS[0m (0.06s)
+  test:product_name read should 404 on missing products.         [32m PASS[0m (0.01s)
+  test:product_name should delete products.                      [32m PASS[0m (0.07s)
+  test:product_name read should return existing products.        [32m PASS[0m (0.05s)
+  test:product_name should pass a health check.                  [32m PASS[0m (0.00s)
+  test:product_name should update products.                      [32m PASS[0m (0.05s)
+
+TestProduct
+  test:product should create from hash.                          [32m PASS[0m (0.00s)
+  test:product should ignore extra data.                         [32m PASS[0m (0.00s)
+  test:product should have an id.                                [32m PASS[0m (0.00s)
+  test:product should be a hash.                                 [32m PASS[0m (0.00s)
+  test:product should have a name.                               [32m PASS[0m (0.00s)
+  test:product should output json.                               [32m PASS[0m (0.00s)
+
+Finished in 0.62230s
+19 tests, 42 assertions, [32m0 failures, 0 errors, [0m[33m0 skips[0m
+Started with run options --seed 7370
+
+TestCombine
+  test:TestCombine should handle 404/nil.                        [32m PASS[0m (0.00s)
+  test:TestCombine should combine read results.                  [32m PASS[0m (0.00s)
+  test:TestCombine should combine list results.                  [32m PASS[0m (0.00s)
+
+TestClient
+  test:client read should 404 on missing product.                [32m PASS[0m (0.01s)
+  test:client should create.                                     [32m PASS[0m (0.06s)
+  test:client should list.                                       [32m PASS[0m (0.05s)
+  test:client read should 200 on existing product.               [32m PASS[0m (0.02s)
+  test:client should delete.                                     [32m PASS[0m (0.04s)
+  test:client should update.                                     [32m PASS[0m (0.03s)
+
+TestMyRetail
+  test:myretail read should 404 on missing product.              [32m PASS[0m (0.10s)
+  test:myretail should create.                                   [32m PASS[0m (0.07s)
+  test:myretail should list.                                     [32m PASS[0m (0.06s)
+  test:myretail should update.                                   [32m PASS[0m (0.03s)
+  test:myretail read should 200 on existing product.             [32m PASS[0m (0.03s)
+  test:myretail should delete.                                   [32m PASS[0m (0.04s)
+
+Finished in 0.54549s
+15 tests, 45 assertions, [32m0 failures, 0 errors, [0m[33m0 skips[0m
+USING REAL DATABASE: host.docker.internal
+Started with run options --seed 17366
+
+TestProductPrice
+  test:product_price read should 404 on missing products.        [32m PASS[0m (0.02s)
+  test:product_price should create products.                     [32m PASS[0m (0.07s)
+  test:product_price should pass a health check.                 [32m PASS[0m (0.01s)
+  test:product_price should delete products.                     [32m PASS[0m (0.06s)
+  test:product_price should list products.                       [32m PASS[0m (0.04s)
+  test:product_price read should return existing products.       [32m PASS[0m (0.05s)
+  test:product_price should update products.                     [32m PASS[0m (0.06s)
+
+TestProduct
+  test:product should have an id.                                [32m PASS[0m (0.00s)
+  test:product should have a currency.                           [32m PASS[0m (0.00s)
+  test:product should have a price.                              [32m PASS[0m (0.00s)
+  test:product should output json.                               [32m PASS[0m (0.00s)
+  test:product should be a hash.                                 [32m PASS[0m (0.00s)
+  test:product should ignore extra data.                         [32m PASS[0m (0.00s)
+  test:product should create from hash.                          [32m PASS[0m (0.00s)
+
+TestProductClass
+  test:product class should delete.                              [32m PASS[0m (0.06s)
+  test:product class should list.                                [32m PASS[0m (0.06s)
+  test:product class should reset.                               [32m PASS[0m (0.07s)
+  test:product class should update.                              [32m PASS[0m (0.07s)
+  test:product class should create.                              [32m PASS[0m (0.05s)
+  test:product class should read.                                [32m PASS[0m (0.05s)
+
+Finished in 0.67577s
+20 tests, 44 assertions, [32m0 failures, 0 errors, [0m[33m0 skips[0m
+Started with run options --seed 46130
+
+TestJsonMixin
+  test:json_mixin should be comparable.                          [32m PASS[0m (0.00s)
+  test:json_mixin should be convertable to json.                 [32m PASS[0m (0.00s)
+  test:json_mixin should be equal.                               [32m PASS[0m (0.00s)
+  test:json_mixin should be uniq-able.                           [32m PASS[0m (0.00s)
+  test:json_mixin should only pull out getters.                  [32m PASS[0m (0.00s)
+  test:json_mixin should be pretty-printable.                    [32m PASS[0m (0.00s)
+
+Finished in 0.00264s
+6 tests, 12 assertions, [32m0 failures, 0 errors, [0m[33m0 skips[0m
+Started with run options --seed 14287
+
+TestMockDatabase
+  test:update should update a document in the database.          [32m PASS[0m (0.00s)
+  test:query should return an empty list.                        [32m PASS[0m (0.00s)
+  test:query should subset filter.                               [32m PASS[0m (0.00s)
+  test:update should insert a document into the database.        [32m PASS[0m (0.00s)
+  test:delete should delete a document from the database.        [32m PASS[0m (0.00s)
+  test:query should list all documents.                          [32m PASS[0m (0.00s)
+  test:query should list duplicate documents.                    [32m PASS[0m (0.00s)
+  test:query should unique filter.                               [32m PASS[0m (0.00s)
+  test:insert should insert a document into the database.        [32m PASS[0m (0.00s)
+
+TestTransform
+  test:tranform should symbolize keys.                           [32m PASS[0m (0.00s)
+
+TestRealDatabase
+  test:query should return an empty list.                        [32m PASS[0m (0.01s)
+  test:query should list all documents.                          [32m PASS[0m (0.06s)
+  test:update should insert a document into the database.        [32m PASS[0m (0.05s)
+  test:delete should delete a document from the database.        [32m PASS[0m (0.04s)
+  test:query should unique filter.                               [32m PASS[0m (0.06s)
+  test:insert should insert a document into the database.        [32m PASS[0m (0.05s)
+  test:query should list duplicate documents.                    [32m PASS[0m (0.06s)
+  test:query should subset filter.                               [32m PASS[0m (0.07s)
+  test:update should update a document in the database.          [32m PASS[0m (0.06s)
+
+Finished in 0.46952s
+19 tests, 75 assertions, [32m0 failures, 0 errors, [0m[33m0 skips[0m

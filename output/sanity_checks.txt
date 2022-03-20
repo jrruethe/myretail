@@ -1,0 +1,53 @@
+# This is the result of running the script /test/test.sh after a complete deployment
+
+Performing tests against the API
+Deleting any existing items
+null
+Listing items (should be empty)
+[]
+Creating an item
+{
+  "id": 1,
+  "name": "test",
+  "currency": "USD",
+  "price": 1.5
+}
+Listing items (should have 1)
+[
+  {
+    "id": 1,
+    "name": "test",
+    "currency": "USD",
+    "price": 1.5
+  }
+]
+Reading the item
+{
+  "id": 1,
+  "name": "test",
+  "currency": "USD",
+  "price": 1.5
+}
+Updating the item (price change)
+{
+  "id": 1,
+  "name": "test",
+  "currency": "USD",
+  "price": 3.14
+}
+Reading the item
+{
+  "id": 1,
+  "name": "test",
+  "currency": "USD",
+  "price": 3.14
+}
+Deleting the item
+{
+  "id": 1,
+  "name": "test",
+  "currency": "USD",
+  "price": 3.14
+}
+Listing items (should be empty)
+[]
