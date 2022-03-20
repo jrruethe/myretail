@@ -26,7 +26,7 @@ class TestProductPrice < Minitest::Test
 
     should "list products" do
       get "/products"
-      response = JSON.parse(last_response.body)
+      response = JSON.parse(last_response.body, symbolize_names: true)
       assert_equal [], response
 
       data = {id: 1, price: 1.5, currency: "USD"}

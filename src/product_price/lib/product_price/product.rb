@@ -25,7 +25,7 @@ module MyRetail
     # Connect to the database, or fall back to the mock database
     begin
       host = ENV["DBHOST"] || "host.docker.internal"
-      name = ENV["DBNAME"] || "product_name"
+      name = ENV["DBNAME"] || "product_price"
       @@database = MyRetail::Database.new(host: host, name: name)
       STDERR.puts "USING REAL DATABASE: #{ENV["DBHOST"]}"
     rescue Mongo::Error::SocketError

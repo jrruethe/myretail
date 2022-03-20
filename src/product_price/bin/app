@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require "product_name"
+require "product_price"
 
 # Sinatra configuration
 set :bind, "0.0.0.0"

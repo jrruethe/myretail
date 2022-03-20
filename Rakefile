@@ -14,7 +14,7 @@ SINATRA_PORT = 4567
 # Main service components
 COMPONENTS =
 [
-  :api,
+  :myretail,
   :product_name,
   :product_price
 ]
@@ -375,17 +375,31 @@ task :deploy => :push do
 
   # Deploy the manifests
   [
+    # Product Name Service
     "./deploy/kubernetes_manifests/product_name/api/deployment.yml",
     "./deploy/kubernetes_manifests/product_name/api/service.yml",
-    "./deploy/kubernetes_manifests/product_name/api/ingress.yml",
     "./deploy/kubernetes_manifests/product_name/mongodb/deployment.yml",
     "./deploy/kubernetes_manifests/product_name/mongodb/service.yml",
+
+    # Product Price Service
+    "./deploy/kubernetes_manifests/product_price/api/deployment.yml",
+    "./deploy/kubernetes_manifests/product_price/api/service.yml",
+    "./deploy/kubernetes_manifests/product_price/mongodb/deployment.yml",
+    "./deploy/kubernetes_manifests/product_price/mongodb/service.yml",
   ]
+  .each{|i| deploy(i)}
+
+end
+
+task :deploy_test => :deploy do
+
+  # Deploy test manifests
+  (Dir.glob("deploy/**/test_*.yml") + Dir.glob("deploy/*/test/**/*.yml"))
   .each{|i| deploy(i)}
 
 end
 ###############################################################################
 
 # Defaults
-task :all => [:clean, :test, :build, :push, :deploy]
+task :all => [:clean, :build, :push, :deploy, :deploy_test, :test]
 task :default => :deploy
