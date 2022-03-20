@@ -386,6 +386,11 @@ task :deploy => :push do
     "./deploy/kubernetes_manifests/product_price/api/service.yml",
     "./deploy/kubernetes_manifests/product_price/mongodb/deployment.yml",
     "./deploy/kubernetes_manifests/product_price/mongodb/service.yml",
+
+    # MyRetail API
+    "./deploy/kubernetes_manifests/myretail/api/deployment.yml",
+    "./deploy/kubernetes_manifests/myretail/api/service.yml",
+    "./deploy/kubernetes_manifests/myretail/api/ingress.yml",
   ]
   .each{|i| deploy(i)}
 

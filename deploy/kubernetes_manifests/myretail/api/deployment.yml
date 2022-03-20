@@ -2,29 +2,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-price-api
+  name: myretail
   labels:
-    target: product-price
+    target: myretail
     component: api
 spec:
   replicas: 2
   selector:
     matchLabels:
-      target: product-price
+      target: myretail
       component: api
   template:
     metadata:
-      name: product-price-api
+      name: myretail
       labels:
-        target: product-price
+        target: myretail
         component: api
     spec:
       containers:
-      - name: product-price-api
-        image: "registry.localhost:5000/jrruethe/product_price:latest"
+      - name: myretail-api
+        image: "registry.localhost:5000/jrruethe/myretail:latest"
         env:
-        - name: DBHOST
-          value: product-price-database
+        - name: PRODUCT_NAME
+          value: product-name-api:4567
+        - name: PRODUCT_PRICE
+          value: product-price-api:4567
         ports:
         - name: http
           containerPort: 4567
