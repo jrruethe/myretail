@@ -46,15 +46,12 @@ The goal for this exercise is to create an end-to-end Proof-of-Concept for a pro
 Your goal is to create a RESTful service that can retrieve product and price details by ID. The URL structure is up to you to define, but try to follow some sort of logical convention.
 
 Build an application that performs the following actions: 
-- [x] Responds to an HTTP GET request at /products/{id} and delivers product data as JSON (where {id} will be a number
+- [x] Responds to an HTTP GET request at /products/{id} and delivers product data as JSON (where {id} will be a number)
 
-Example product IDs: 13860428, 54456119, 13264003, 12954218)
-Example response: {"id":13860428,"name":"The Big Lebowski (Blu-ray) (Widescreen)","current_price":{"value": 13.49,"currency_code":"USD"}}
+Example product IDs: 13860428, 54456119, 13264003, 12954218)  
+Example response: `{"id":13860428,"name":"The Big Lebowski (Blu-ray) (Widescreen)","current_price":{"value": 13.49,"currency_code":"USD"}}`
 
 - [x] Performs an HTTP GET to retrieve the product name from an external API. (For this exercise the data will come from redsky.target.com, but let’s just pretend this is an internal resource hosted by myRetail) 
-
-Example: 
-https://redsky-uat.perf.target.com/redsky_aggregations/v1/redsky/case_study_v1?key=3yUxt7WltYG7MFKPp7uyELi1K40ad2ys&tcin=13860428
 
 - [x] Reads pricing information from a NoSQL data store and combines it with the product id and name from the HTTP request into a single response
 
@@ -120,6 +117,8 @@ This user-exposed API is designed to be a generic API aggregator, capable of com
 - Update
 - Delete
 
+It is designed to be easy to add or swap API endpoints to aggregate additional data or utilize different sources.
+
 ### Product-Name / Product-Price
 
 These services provide a way to retrieve a product name or price by its product ID number. Each service is responsible for it's one thing.
@@ -133,6 +132,14 @@ Splitting the Product-Name and Product-Price services was chosen due to the requ
 ## Building
 
 This project is built entirely in Docker containers. Performing a `rake build` will build all the gems and Docker images needed to deploy the project, with all artifacts being stored inside the `./build` directory.
+
+There are three Dockerfiles that are used for the entire project:
+
+- A `base` image that the other two derive from
+- A `test` image that is designed to be run with the host filesystem mounted, for building gems and running unit tests
+- A `dist` image for installing the gems and deploying to Kubernetes
+
+The Rakefile may look complicated, however a majority of the file is spent defining dependencies between the different tasks and source files.
 
 ## Testing
 
@@ -203,11 +210,6 @@ The database also does not enforce uniqueness of product IDs.
 ### Input Validation
 
 The services don't really do any input validation other than types. For example, a `currency` of `NOTAREALVALUE` would be accepted, where something like `USD` is more appropriate.
-
-## Tools Used
-
-- [Lens](https://k8slens.dev/)
-- [yEd](https://www.yworks.com/downloads)
 
 ## Troubleshooting
 
