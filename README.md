@@ -211,6 +211,14 @@ The database also does not enforce uniqueness of product IDs.
 
 The services don't really do any input validation other than types. For example, a `currency` of `NOTAREALVALUE` would be accepted, where something like `USD` is more appropriate.
 
+## Versioning
+
+Currently, the APIs are hosted at endpoints like `/products/:id` instead of something like `/api/v1/products/:id`. 
+
+## OpenAPI Documentation
+
+If the APIs were moved under the `/api` directory, then something like a Swagger documentation page could be added at `/doc`. Such a documentation page may look something like [this](https://editor.swagger.io/)
+
 ## Troubleshooting
 
 If you have issues getting the Ingress to properly connect to the Service (indicated by `502 Bad Gateway` errors), try the suggestion here:
